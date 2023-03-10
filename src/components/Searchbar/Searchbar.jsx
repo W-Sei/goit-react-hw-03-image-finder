@@ -1,9 +1,9 @@
 import { Component } from 'react';
+import { GoSearch } from 'react-icons/go';
 import {
   SearchbarHeader,
   SearchForm,
   SearchFormButton,
-  SearchFormButtonLabel,
   SearchFormInput,
 } from './Searchbar.styled';
 
@@ -27,7 +27,7 @@ export class Searchbar extends Component {
       <SearchbarHeader>
         <SearchForm onSubmit={this.handleSubmit}>
           <SearchFormButton type="submit">
-            <SearchFormButtonLabel>Search</SearchFormButtonLabel>
+            <GoSearch />
           </SearchFormButton>
 
           <SearchFormInput
