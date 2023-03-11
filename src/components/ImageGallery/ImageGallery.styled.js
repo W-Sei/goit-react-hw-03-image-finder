@@ -2,7 +2,8 @@ import styled from 'styled-components';
 
 export const ImageGalleryUl = styled.ul`
   display: grid;
-  max-width: calc(100vw - 48px);
+  /* max-width: calc(100vw - 48px); */
+  max-width: calc(100vw - 350px);
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   grid-gap: 16px;
   margin-top: 10px;
