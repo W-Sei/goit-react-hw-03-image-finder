@@ -6,77 +6,85 @@ import { Searchbar } from './Searchbar/Searchbar';
 import { ImageGallery } from './ImageGallery/ImageGallery';
 import { ButtonLoadMore } from './Button/Button';
 import { Loader } from './Loader/Loader';
-import { Modal } from './Modal/Modal';
+import { Error } from 'utils/Error';
+
+import { Notify } from 'notiflix';
+import { animateScroll as scroll } from 'react-scroll';
 
 export class App extends Component {
   state = {
-    images: [],
-    query: '',
+    searchValue: '',
     page: 1,
+    images: [],
+    showBtn: false,
     isLoading: false,
-    modalImage: '',
-    showModal: false,
-    totalHits: 0,
+    error: null,
   };
 
-  componentDidUpdate = (_, prevState) => {
-    if (
-      this.state.query !== prevState.query ||
-      this.state.page !== prevState.page
-    ) {
+  componentDidUpdate(_, prevState) {
+    const { searchValue, page } = this.state;
+    if (prevState.searchValue !== searchValue || prevState.page !== page) {
       this.setState({ isLoading: true });
-      fetchPhotos(this.state.query, this.state.page)
-        .then(data => {
+
+      fetchPhotos(searchValue, page)
+        .then(({ total, totalHits, hits }) => {
+          if (!hits.length) {
+            return Notify.failure(
+              'Sorry, there are no images matching your search query. Please try again'
+            );
+          }
+
+          if (page === 1) {
+            Notify.success(`Hooray! We found ${totalHits} images.`);
+          }
+
           this.setState(prevState => ({
-            images:
-              this.state.page === 1
-                ? [...data.hits]
-                : [...prevState.images, ...data.hits],
-            totalHits:
-              this.state.page === 1
-                ? data.totalHits - data.hits.length
-                : data.totalHits - [...prevState.images, ...data.hits].length,
+            images: [...prevState.images, ...hits],
+            showBtn: page < Math.ceil(total / 12),
           }));
+
+          if (hits.length < 12 && page !== 1) {
+            Notify.failure(
+              "We're sorry, but you've reached the end of search results"
+            );
+          }
         })
-        .finally(() => {
-          this.setState({ isLoading: false });
-        });
+        .catch(error => {
+          this.setState({ error: error.message });
+        })
+        .finally(this.setState({ isLoading: false }));
     }
+  }
+
+  handleSubmit = searchValue => {
+    this.setState({
+      searchValue,
+      page: 1,
+      images: [],
+      showBtn: false,
+      error: null,
+    });
   };
 
-  handleSubmit = query => {
-    this.setState({ query, page: 1 });
-  };
-
-  handleLoadMore = () => {
-    this.setState(state => ({ page: state.page + 1 }));
-  };
-
-  toggleModal = modalImage => {
-    if (!modalImage) {
-      this.setState({ modalImage: '', showModal: false });
-      return;
-    }
-    this.setState({ modalImage, showModal: true });
+  handleClickMore = () => {
+    scroll.scrollMore(400);
+    this.setState(prevState => ({ page: prevState.page + 1 }));
   };
 
   render() {
+    const { images, showBtn, isLoading, error } = this.state;
     return (
       <Wrapper>
         <GlobalStyles />
         <Searchbar onSubmit={this.handleSubmit} />
-        {this.state.isLoading && <Loader />}
-        <ImageGallery images={this.state.images} openModal={this.toggleModal} />
-        {!!this.state.totalHits && (
-          <ButtonLoadMore onLoadMore={this.handleLoadMore} />
-        )}
-        {this.state.showModal && (
-          <Modal
-            modalImage={this.state.modalImage}
-            closeModal={this.toggleModal}
-          />
-        )}
+            <ImageGallery images={images} />
+            {showBtn && (
+              <ButtonLoadMore onClick={this.handleClickMore} />
+            )}
+          {isLoading && <Loader />}
+        {error && < Error message={error} />}
       </Wrapper>
+      
     );
   }
 }

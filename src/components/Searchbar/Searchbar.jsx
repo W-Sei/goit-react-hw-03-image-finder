@@ -6,26 +6,39 @@ import {
   SearchFormButton,
   SearchFormInput,
 } from './Searchbar.styled';
+import PropTypes from 'prop-types';
+import { Notify } from 'notiflix';
 
 export class Searchbar extends Component {
   state = {
-    query: '',
+    searchValue: '',
   };
 
   handleChange = e => {
-    const query = e.target.value;
-    this.setState({ query });
+    const { value } = e.target;
+    this.setState({ searchValue: value.toLowerCase() });
   };
 
   handleSubmit = e => {
     e.preventDefault();
-    this.props.onSubmit(this.state.query);
+
+    if (this.state.searchValue.trim() === '') {
+      return Notify.info('Please, fill in the search field!');
+    }
+    this.props.onSubmit(this.state.searchValue);
+    this.reset();
+  };
+
+  reset = () => {
+    this.setState({ searchValue: '' });
   };
 
   render() {
+    const { searchValue } = this.state;
+
     return (
-      <SearchbarHeader>
-        <SearchForm onSubmit={this.handleSubmit}>
+      <SearchbarHeader onSubmit={this.handleSubmit}>
+        <SearchForm>
           <SearchFormButton type="submit">
             <GoSearch />
           </SearchFormButton>
@@ -34,9 +47,8 @@ export class Searchbar extends Component {
             type="text"
             autoComplete="off"
             autoFocus
-            placeholder="Find some pictures"
-            name="query"
-            value={this.state.query}
+            placeholder="Search images and photos"
+            value={searchValue}
             onChange={this.handleChange}
           />
         </SearchForm>
@@ -44,3 +56,8 @@ export class Searchbar extends Component {
     );
   }
 }
+
+Searchbar.propTypes = {
+  onSubmit: PropTypes.func.isRequired,
+};
+
