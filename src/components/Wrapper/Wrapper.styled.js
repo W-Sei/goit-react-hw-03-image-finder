@@ -6,6 +6,6 @@ export const Wrapper = styled.div`
   align-items: center;
   background-color: white;
   color: white;
-  max-width: 1600px;
+  max-width: 1900px;
   margin: 0 auto;
 `;
