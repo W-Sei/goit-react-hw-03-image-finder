@@ -1,3 +1,4 @@
+import React from 'react';
 import { Vortex } from 'react-loader-spinner';
 
 export const Loader = () => {
